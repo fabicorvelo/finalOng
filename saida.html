@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>Saída de Produto</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #001f3f; /* Cor de fundo suave */
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            background-color: #001f3f; /* Fundo branco para o formulário */
+            border-radius: 5px; /* Bordas arredondadas */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra leve */
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #ffff; /* Cor do título */
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            font-weight: bold; /* Negrito para os rótulos */
+        }
+        .btn {
+            margin-top: 10px; /* Espaçamento entre os botões */
+        } 
+        label{
+            color: #f9f9f9;
+        }
+        .produto-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9; /* Fundo para cada produto */
+        }
+        .produto-container img {
+            margin-right: 20px;
+            border-radius: 5px;
+            max-width: 100px; /* Tamanho máximo da imagem */
+            max-height: 100px; /* Tamanho máximo da imagem */
+        }
+        #resultado-pesquisa {
+            margin-top: 20px; /* Espaçamento acima dos resultados da pesquisa */
+            display: none; /* Inicialmente oculto */
+        }
+        #entrada-list {
+            max-height: 400px;
+            overflow-y: auto; /* Adiciona rolagem vertical */
+            margin-top: 20px; /* Espaçamento acima da lista */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Saída de Produto</h1>
+        <form id="saidaForm" onsubmit="registrarSaida(event)">
+            <div class="form-group">
+                <label for="nomeProduto">Nome do Produto:</label>
+                <input type="text" class="form-control" id="nomeProduto" required>
+            </div>
+            <div class="form-group">
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" class="form-control" id="quantidade" required>
+            </div>
+            <div class="form-group">
+                <label for="dataSaida">Data de Saída:</label>
+                <input type="date" class="form-control" id="dataSaida" required>
+            </div>
+            <div class="form-group">
+                <label for="dataValidade">Data de Vencimento:</label>
+                <input type="date" class="form-control" id="dataValidade" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrar Saída</button>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">Voltar ao Menu</button>
+        </form>
+
+        <div class="search-container" style="margin-top: 20px;">
+            <div class="form-group">
+                <input type="text" class="form-control" id="searchInput" placeholder="Pesquisar Saídas...">
+            </div>
+            <button class="btn btn-info" onclick="pesquisarSaidas()">Pesquisar</button>
+        </div>
+
+        <div id="resultado-pesquisa">
+            <h2>Resultados da Pesquisa:</h2>
+            <div id="resultadosSaida"></div>
+        </div>
+        
+        <div id="entrada-list">
+            <h2>Saídas Registradas:</h2>
+            <div id="saidas"></div>
+        </div>
+    </div>
+
+    <script>
+        function registrarSaida(event) {
+            event.preventDefault(); // Evita o envio do formulário
+
+            const nomeProduto = document.getElementById('nomeProduto').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const dataSaida = document.getElementById('dataSaida').value;
+            const dataValidade = document.getElementById('dataValidade').value;
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+
+            const produtoIndex = produtos.findIndex(produto => produto.nome.toLowerCase() === nomeProduto.toLowerCase());
+
+            if (produtoIndex === -1) {
+                alert("Produto não encontrado.");
+                return;
+            }
+
+            const produto = produtos[produtoIndex];
+
+            if (quantidade > produto.quantidade) {
+                alert("Quantidade solicitada maior que a disponível.");
+                return;
+            }
+
+            produto.quantidade -= quantidade;
+            produto.dataSaida = produto.dataSaida || [];
+            produto.dataSaida.push({
+                quantidade: quantidade,
+                data: formatarData(dataSaida),
+                validade: formatarData(dataValidade)
+            });
+
+            produtos[produtoIndex] = produto;
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+
+            alert(`Saída registrada: ${quantidade} unidades de ${nomeProduto}.`);
+            document.getElementById('saidaForm').reset();
+            mostrarSaidas();
+        }
+
+        function formatarData(data) {
+            const [ano, mes, dia] = data.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function pesquisarSaidas() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const resultadosContainer = document.getElementById('resultadosSaida');
+            resultadosContainer.innerHTML = '';
+
+            const saídasEncontradas = produtos.filter(produto => 
+                produto.dataSaida && produto.dataSaida.some(saida => 
+                    produto.nome.toLowerCase().includes(searchInput)
+                )
+            );
+
+            if (saídasEncontradas.length === 0) {
+                resultadosContainer.innerHTML = '<p>Nenhum produto saiu.</p>';
+                return;
+            }
+
+            saídasEncontradas.forEach(produto => {
+                const divProduto = document.createElement('div');
+                const img = document.createElement('img');
+                img.src = produto.imagem || 'imagens/placeholder.png';
+                img.alt = produto.nome;
+                divProduto.classList.add('produto-container');
+                divProduto.appendChild(img);
+
+                produto.dataSaida.forEach(saida => {
+                    const saidaInfo = document.createElement('p');
+                    saidaInfo.textContent = `Produto: ${produto.nome} - Quantidade: ${saida.quantidade} - Data de Saída: ${saida.data} - Validade: ${saida.validade || 'Não informada'}`;
+                    divProduto.appendChild(saidaInfo);
+                });
+                resultadosContainer.appendChild(divProduto);
+            });
+            const resultado = document.getElementById('resultado-pesquisa');
+            resultado.style.display = 'block';
+        }
+
+        function mostrarSaidas() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const saidasContainer = document.getElementById('saidas');
+            saidasContainer.innerHTML = '';
+
+            let temSaida = false;
+            produtos.forEach(produto => {
+                if (produto.dataSaida && produto.dataSaida.length > 0) {
+                    temSaida = true;
+                    const divProduto = document.createElement('div');
+                    divProduto.classList.add('produto-container');
+
+                    produto.dataSaida.forEach(saida => {
+                        const saidaInfo = document.createElement('p');
+                        saidaInfo.textContent = `Produto: ${produto.nome} - Quantidade: ${saida.quantidade} - Data de Saída: ${saida.data} - Validade: ${saida.validade || 'Não informada'}`;
+                        divProduto.appendChild(saidaInfo);
+                    });
+                    saidasContainer.appendChild(divProduto);
+                }
+            });
+
+            if (!temSaida) {
+                saidasContainer.innerHTML = '<p>Produtos não saíram até o momento.</p>';
+            }
+        }
+
+        window.onload = mostrarSaidas;
+    </script>
+</body>
+</html>

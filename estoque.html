@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque</title>
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #001f3f;
+        }
+        h1 {
+            text-align: center;
+            color: #ece7e7;
+        }
+        .search-container {
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .search-container input {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .search-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .search-container button:hover {
+            background-color: #0056b3;
+        }
+        #product-list {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .produto {
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .produto h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #007bff;
+        }
+        .detalhe-item {
+            margin-top: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .detalhe-item.verde {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .detalhe-item.amarelo {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .detalhe-item.vermelho {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        button.voltar {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #dc3545;
+            color: white;
+            cursor: pointer;
+        }
+        button.voltar:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Estoque de Produtos</h1>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Digite o nome do produto...">
+        <button onclick="filtrarProdutos()">Pesquisar</button>
+    </div>
+
+    <div id="product-list"></div>
+
+    <button type="button" class="voltar" onclick="window.location.href='index.html'">Voltar ao Menu</button>
+
+    <script>
+        function carregarProdutos() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            if (produtos.length === 0) {
+                const mensagem = document.createElement('p');
+                mensagem.textContent = "Nenhum produto no estoque.";
+                productList.appendChild(mensagem);
+            } else {
+                // Exibir todos os produtos sem agrupamento
+                produtos.forEach(produto => {
+                    const divProduto = document.createElement('div');
+                    divProduto.classList.add('produto');
+
+                    const info = document.createElement('h2');
+                    info.textContent = produto.nome;
+                    divProduto.appendChild(info);
+
+                    const detalheDiv = document.createElement('div');
+                    detalheDiv.classList.add('detalhe-item');
+
+                    // Determine o estilo baseado na quantidade
+                    const quantidade = produto.quantidade || 0;
+                    if (quantidade > 0) {
+                        detalheDiv.classList.add('verde');
+                    } else if (quantidade === 0) {
+                        detalheDiv.classList.add('amarelo');
+                    } else {
+                        detalheDiv.classList.add('vermelho');
+                    }
+
+                    detalheDiv.innerHTML = `
+                        <strong>Validade:</strong> ${produto.validade || 'Não informada'}<br>
+                        <strong>Entrada:</strong> ${produto.dataEntrada || 'Não informada'}<br>
+                        <strong>Saída:</strong> ${produto.dataSaida || 'Não informada'}<br>
+                        <strong>Quantidade:</strong> ${quantidade}
+                    `;
+                    divProduto.appendChild(detalheDiv);
+                    productList.appendChild(divProduto);
+                });
+            }
+        }
+
+        function filtrarProdutos() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            // Exibir todos os produtos, mas filtrar na busca
+            const produtosFiltrados = produtos.filter(produto => produto.nome.toLowerCase().includes(searchInput));
+
+            if (produtosFiltrados.length === 0) {
+                const mensagem = document.createElement('p');
+                mensagem.textContent = "Nenhum produto encontrado.";
+                productList.appendChild(mensagem);
+            } else {
+                produtosFiltrados.forEach(produto => {
+                    const divProduto = document.createElement('div');
+                    divProduto.classList.add('produto');
+
+                    const info = document.createElement('h2');
+                    info.textContent = produto.nome;
+                    divProduto.appendChild(info);
+
+                    const detalheDiv = document.createElement('div');
+                    detalheDiv.classList.add('detalhe-item');
+
+                    // Determine o estilo baseado na quantidade
+                    const quantidade = produto.quantidade || 0;
+                    if (quantidade > 0) {
+                        detalheDiv.classList.add('verde');
+                    } else if (quantidade === 0) {
+                        detalheDiv.classList.add('amarelo');
+                    } else {
+                        detalheDiv.classList.add('vermelho');
+                    }
+
+                    detalheDiv.innerHTML = `
+                        <strong>Validade:</strong> ${produto.validade || 'Não informada'}<br>
+                        <strong>Entrada:</strong> ${produto.dataEntrada || 'Não informada'}<br>
+                        <strong>Saída:</strong> ${produto.dataSaida || 'Não informada'}<br>
+                        <strong>Quantidade:</strong> ${quantidade}
+                    `;
+                    divProduto.appendChild(detalheDiv);
+                    productList.appendChild(divProduto);
+                });
+            }
+        }
+
+        window.onload = carregarProdutos;
+    </script>
+    
+</body>
+</html>

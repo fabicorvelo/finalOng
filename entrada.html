@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada de Produto</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <style>
+
+body {
+            background-color: #001f3f;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #fcfcfc; /* Azul semelhante ao do index */
+            text-align: center;
+        }
+
+        .form-container {
+            background-color: #001f3f; /* Azul */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        .form-container label {
+            color: white;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: #007bff;
+        }
+
+        .btn-secondary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 85px);
+            display: inline-block;
+        }
+
+        .btn-info {
+            background-color: white;
+            color: #007bff;
+            padding: 10px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        .card-header {
+            font-weight: bold;
+            font-size: 18px;
+            color: #007bff;
+        }
+
+        .card-body p {
+            color: #333;
+        }
+
+        #resultado-pesquisa {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Entrada de Produto</h1>
+
+        <!-- Formulário de Cadastro -->
+        <div class="form-container">
+            <form id="entradaForm" onsubmit="registrarEntrada(event)">
+                <label for="nomeProduto">Nome do Produto:</label>
+                <input type="text" id="nomeProduto" class="form-control" required>
+
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" class="form-control" placeholder="Quantidade" required>
+
+                <label for="dataEntrada">Data de Entrada:</label>
+                <input type="date" id="dataEntrada" class="form-control" placeholder="Data de Entrada" required>
+
+                <label for="validade">Data de Vencimento:</label>
+                <input type="date" id="dataValidade" class="form-control" placeholder="Data de Validade" required>
+
+                <br>
+                <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">Voltar ao Menu</button>
+            </form>
+        </div>
+
+        <hr>
+
+        <!-- Campo de Pesquisa -->
+        <div class="form-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar Entradas...">
+            <button class="btn btn-info" onclick="pesquisarEntradas()">Pesquisar</button>
+        </div>
+
+        <!-- Resultados da Pesquisa -->
+        <div id="resultado-pesquisa">
+            <h2>Resultados da Pesquisa:</h2>
+            <div id="resultadosEntrada"></div>
+        </div>
+
+        <br>
+
+        <!-- Exibe as Entradas Registradas -->
+        <div id="entrada-list">
+            <h2>Entradas Registradas:</h2>
+            <div id="entradas"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para formatar a data em dd/mm/yyyy
+        function formatarData(data) {
+            const dataObj = new Date(data);
+            const dia = String(dataObj.getDate()).padStart(2, '0');
+            const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+            const ano = dataObj.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function registrarEntrada(event) {
+            event.preventDefault();
+
+            const nomeProduto = document.getElementById('nomeProduto').value;
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const dataEntrada = document.getElementById('dataEntrada').value;
+            const dataValidade = document.getElementById('dataValidade').value;
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+
+            const produtoIndex = produtos.findIndex(produto => produto.nome.toLowerCase() === nomeProduto.toLowerCase());
+
+            if (produtoIndex === -1) {
+                const novoProduto = {
+                    nome: nomeProduto,
+                    quantidade: quantidade,
+                    entradas: [{
+                        quantidade: quantidade,
+                        data: formatarData(dataEntrada),
+                        validade: formatarData(dataValidade)
+                    }]
+                };
+                produtos.push(novoProduto);
+            } else {
+                const produto = produtos[produtoIndex];
+                produto.quantidade += quantidade;
+                produto.entradas.push({
+                    quantidade: quantidade,
+                    data: formatarData(dataEntrada),
+                    validade: formatarData(dataValidade)
+                });
+            }
+
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+            alert(`Entrada registrada: ${quantidade} unidades de ${nomeProduto}.`);
+            document.getElementById('entradaForm').reset();
+            mostrarEntradas();
+        }
+
+        function pesquisarEntradas() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const resultadosContainer = document.getElementById('resultadosEntrada');
+            resultadosContainer.innerHTML = '';
+
+            const entradasEncontradas = produtos.filter(produto =>
+                produto.entradas && produto.entradas.some(entrada =>
+                    produto.nome.toLowerCase().includes(searchInput)
+                )
+            );
+
+            if (entradasEncontradas.length === 0) {
+                resultadosContainer.innerHTML = '<p>Nenhum produto encontrado.</p>';
+                return;
+            }
+
+            entradasEncontradas.forEach(produto => {
+                const divProduto = document.createElement('div');
+                divProduto.className = 'card';
+
+                produto.entradas.forEach(entrada => {
+                    const entradaInfo = document.createElement('p');
+                    entradaInfo.innerHTML = `
+                        <strong>Produto:</strong> ${produto.nome} <br>
+                        <strong>Quantidade:</strong> ${entrada.quantidade} <br>
+                        <strong>Data de Entrada:</strong> ${formatarData(entrada.data)} <br>
+                        <strong>Validade:</strong> ${formatarData(entrada.validade)}
+                    `;
+                    divProduto.appendChild(entradaInfo);
+                });
+
+                resultadosContainer.appendChild(divProduto);
+            });
+
+            document.getElementById('resultado-pesquisa').style.display = 'block';
+        }
+
+        function mostrarEntradas() {
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const entradasContainer = document.getElementById('entradas');
+            entradasContainer.innerHTML = '';
+
+            let temEntrada = false;
+            produtos.forEach(produto => {
+                if (produto.entradas && produto.entradas.length > 0) {
+                    temEntrada = true;
+
+                    produto.entradas.forEach(entrada => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+
+                        const cardHeader = document.createElement('div');
+                        cardHeader.className = 'card-header';
+                        cardHeader.textContent = produto.nome;
+                        card.appendChild(cardHeader);
+
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body';
+                        cardBody.innerHTML = `
+                            <p><strong>Quantidade:</strong> ${entrada.quantidade}</p>
+                            <p><strong>Data de Entrada:</strong> ${formatarData(entrada.data)}</p>
+                            <p><strong>Validade:</strong> ${formatarData(entrada.validade)}</p>
+                        `;
+                        card.appendChild(cardBody);
+
+                        entradasContainer.appendChild(card);
+                    });
+                }
+            });
+
+            if (!temEntrada) {
+                entradasContainer.innerHTML = '<p>Nenhum produto entrou.</p>';
+            }
+        }
+
+        window.onload = mostrarEntradas;
+    </script>
+
+</body>
+
+</html>
